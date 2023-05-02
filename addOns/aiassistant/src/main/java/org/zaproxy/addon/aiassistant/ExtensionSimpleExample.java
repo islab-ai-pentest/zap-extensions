@@ -74,7 +74,8 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
      */
     private static final String RESOURCES = "resources";
 
-    private ChatGPTClient chatGPTClient = new ChatGPTClient("API-KEY-HERE");
+    private ChatGPTClient chatGPTClient = new ChatGPTClient("");
+    private AlertsAPIClient alertsAPIClient = new AlertsAPIClient();
     private static final Logger LOGGER = LogManager.getLogger(ExtensionSimpleExample.class);
 
     private AbstractPanel statusPanel;
@@ -115,6 +116,7 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
                 messagePanel.add(AddMessage("Me", message, Color.BLUE));
 
                 try {
+                    chatGPTClient.addAlertsToConversation(alertsAPIClient.getAllAlerts());
                     String response = chatGPTClient.sendMessage(message);
                     messagePanel.add(AddMessage("AI", response, Color.RED));
                 } catch (Exception e1) {
