@@ -23,12 +23,16 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import net.sf.json.JSON;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.parosproxy.paros.Constant;
 import org.parosproxy.paros.network.HttpMalformedHeaderException;
 import org.parosproxy.paros.network.HttpMessage;
+import org.zaproxy.addon.dev.auth.nonStdJsonBearer.NonStdJsonBearerDir;
 import org.zaproxy.addon.dev.auth.simpleJson.SimpleJsonDir;
+import org.zaproxy.addon.dev.auth.simpleJsonBearer.SimpleJsonBearerDir;
+import org.zaproxy.addon.dev.auth.simpleJsonBearerCookie.SimpleJsonBearerCookieDir;
 import org.zaproxy.addon.network.ExtensionNetwork;
 import org.zaproxy.addon.network.server.HttpMessageHandler;
 import org.zaproxy.addon.network.server.HttpMessageHandlerContext;
@@ -37,6 +41,7 @@ import org.zaproxy.addon.network.server.Server;
 public class TestProxyServer {
 
     public static final String STATUS_OK = "200 OK";
+    public static final String STATUS_FORBIDDEN = "403 Forbidden";
     public static final String STATUS_NOT_FOUND = "404 Not Found";
     public static final String STATUS_REDIRECT = "302 Found";
 
@@ -56,7 +61,10 @@ public class TestProxyServer {
         root = new TestDirectory(this, "");
 
         TestDirectory authDir = new TestDirectory(this, "auth");
-        authDir.addDirectory(new SimpleJsonDir(this));
+        authDir.addDirectory(new SimpleJsonDir(this, "simple-json"));
+        authDir.addDirectory(new SimpleJsonBearerDir(this, "simple-json-bearer"));
+        authDir.addDirectory(new NonStdJsonBearerDir(this, "non-std-json-bearer"));
+        authDir.addDirectory(new SimpleJsonBearerCookieDir(this, "simple-json-bearer-cookie"));
 
         root.addDirectory(authDir);
     }
@@ -132,8 +140,6 @@ public class TestProxyServer {
         sb.append("HTTP/1.1 ").append(responseStatus).append("\r\n");
         sb.append("Pragma: no-cache\r\n");
         sb.append("Cache-Control: no-cache, no-store, must-revalidate\r\n");
-        sb.append(
-                "Content-Security-Policy: default-src 'none'; script-src 'self'; connect-src 'self'; child-src 'self'; img-src 'self' data:; font-src 'self' data:; style-src 'self'\r\n");
         sb.append("Access-Control-Allow-Methods: GET,POST,OPTIONS\r\n");
         sb.append("Access-Control-Allow-Headers: ZAP-Header\r\n");
         sb.append("X-Frame-Options: DENY\r\n");
@@ -172,6 +178,23 @@ public class TestProxyServer {
                 msg.setResponseHeader(
                         getDefaultResponseHeader(contentType, msg.getResponseBody().length()));
             }
+        } catch (HttpMalformedHeaderException e) {
+            LOGGER.error(e.getMessage(), e);
+        }
+    }
+
+    public void setJsonResponse(JSON json, HttpMessage msg) {
+        this.setJsonResponse(STATUS_OK, json, msg);
+    }
+
+    public void setJsonResponse(String responseStatus, JSON json, HttpMessage msg) {
+        try {
+            String body = json.toString();
+            LOGGER.debug("{} returning {}", msg.getRequestHeader().getURI(), body);
+            msg.setResponseBody(body);
+            msg.setResponseHeader(
+                    getDefaultResponseHeader(
+                            responseStatus, "application/json", msg.getResponseBody().length()));
         } catch (HttpMalformedHeaderException e) {
             LOGGER.error(e.getMessage(), e);
         }

@@ -52,6 +52,7 @@ import org.zaproxy.zap.session.WebSession;
 import org.zaproxy.zap.utils.ApiUtils;
 import org.zaproxy.zap.utils.EncodingUtils;
 import org.zaproxy.zap.utils.Pair;
+import org.zaproxy.zap.utils.Stats;
 import org.zaproxy.zap.view.LayoutHelper;
 
 /**
@@ -82,13 +83,16 @@ public class HeaderBasedSessionManagementMethodType extends SessionManagementMet
             return new HeaderBasedSessionManagementMethodType();
         }
 
-        protected static String replaceTokens(String text, Map<String, String> tokens) {
+        protected static String replaceTokens(String text, Map<String, SessionToken> tokens) {
             Pattern pattern = Pattern.compile("\\{%(.+?)\\%}");
             Matcher matcher = pattern.matcher(text);
             StringBuilder builder = new StringBuilder();
             while (matcher.find()) {
-                String replacement = tokens.get(matcher.group(1));
-                if (replacement == null) {
+                SessionToken token = tokens.get(matcher.group(1));
+                String replacement;
+                if (token != null) {
+                    replacement = token.getValue();
+                } else {
                     // Put the token back so its more obvious what failed
                     replacement = matcher.group(0);
                 }
@@ -109,12 +113,20 @@ public class HeaderBasedSessionManagementMethodType extends SessionManagementMet
 
         @Override
         public HttpHeaderBasedSession extractWebSession(HttpMessage msg) {
-            Map<String, String> tokens = AuthUtils.getAllTokens(msg);
+            Map<String, SessionToken> tokens = AuthUtils.getAllTokens(msg);
 
             // Add env vars
-            envVars.forEach((k, v) -> tokens.put("env:" + k, v));
+            envVars.forEach(
+                    (k, v) ->
+                            AuthUtils.addToMap(
+                                    tokens, new SessionToken(SessionToken.ENV_SOURCE, k, v)));
             // Add Global script vars
-            ScriptVars.getGlobalVars().forEach((k, v) -> tokens.put("script:" + k, v));
+            ScriptVars.getGlobalVars()
+                    .forEach(
+                            (k, v) ->
+                                    AuthUtils.addToMap(
+                                            tokens,
+                                            new SessionToken(SessionToken.SCRIPT_SOURCE, k, v)));
 
             List<Pair<String, String>> headers = new ArrayList<>();
             for (Pair<String, String> hc : this.headerConfigs) {
@@ -153,6 +165,7 @@ public class HeaderBasedSessionManagementMethodType extends SessionManagementMet
             if (session instanceof HttpHeaderBasedSession) {
                 HttpHeaderBasedSession hbSession = (HttpHeaderBasedSession) session;
                 for (Pair<String, String> header : hbSession.getHeaders()) {
+                    Stats.incCounter("stats.auth.session.set.header");
                     message.getRequestHeader().setHeader(header.first, header.second);
                 }
             }

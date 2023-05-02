@@ -19,13 +19,18 @@
  */
 package org.zaproxy.addon.dev.auth.simpleJson;
 
-import org.parosproxy.paros.network.HtmlParameter;
+import net.sf.json.JSONException;
+import net.sf.json.JSONObject;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.parosproxy.paros.network.HttpMessage;
 import org.zaproxy.addon.dev.TestPage;
 import org.zaproxy.addon.dev.TestProxyServer;
 import org.zaproxy.addon.network.server.HttpMessageHandlerContext;
 
 public class SimpleJsonLoginPage extends TestPage {
+
+    private static final Logger LOGGER = LogManager.getLogger(SimpleJsonLoginPage.class);
 
     public SimpleJsonLoginPage(TestProxyServer server) {
         super(server, "login");
@@ -36,19 +41,26 @@ public class SimpleJsonLoginPage extends TestPage {
         String username = null;
         String password = null;
 
-        for (HtmlParameter p : msg.getFormParams()) {
-            if (p.getName().equals("user")) {
-                username = p.getValue();
-            } else if (p.getName().equals("password")) {
-                password = p.getValue();
+        if (msg.getRequestHeader().hasContentType("json")) {
+            String postData = msg.getRequestBody().toString();
+            JSONObject jsonObject;
+            try {
+                jsonObject = JSONObject.fromObject(postData);
+                username = jsonObject.getString("user");
+                password = jsonObject.getString("password");
+            } catch (JSONException e) {
+                LOGGER.debug("Unable to parse as JSON: {}", postData, e);
             }
         }
 
-        if ("test@test.com".equals(username) && "password123".equals(password)) {
-            this.getServer().handleFile(getParent(), "home.html", msg);
+        JSONObject response = new JSONObject();
+        if (getParent().isValid(username, password)) {
+            response.put("result", "OK");
+            response.put("accesstoken", getParent().getToken(username));
         } else {
-            this.getServer().handleFile(getParent(), "fail.html", msg);
+            response.put("result", "FAIL");
         }
+        this.getServer().setJsonResponse(response, msg);
     }
 
     @Override

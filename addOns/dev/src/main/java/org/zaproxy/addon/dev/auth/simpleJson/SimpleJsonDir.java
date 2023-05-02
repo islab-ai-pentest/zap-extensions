@@ -19,34 +19,44 @@
  */
 package org.zaproxy.addon.dev.auth.simpleJson;
 
-import org.parosproxy.paros.network.HttpMessage;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.Map;
+import org.apache.commons.lang.RandomStringUtils;
 import org.zaproxy.addon.dev.TestDirectory;
 import org.zaproxy.addon.dev.TestProxyServer;
-import org.zaproxy.addon.network.server.HttpMessageHandlerContext;
 
 /**
- * A login page which uses one JSON request to login endpoint. TODO actually make a JSON request
- * rather than posting directly to the endpoint.'
+ * A login page which uses one JSON request to login endpoint. The token is returned in a standard
+ * field.
  */
 public class SimpleJsonDir extends TestDirectory {
 
-    public SimpleJsonDir(TestProxyServer server) {
-        super(server, "simple-json");
+    // These are test credentials, so hardcoding them is fine ;)
+    private static final String[][] USERS = {{"test@test.com", "password123"}};
+
+    private Map<String, String> sessions = new HashMap<>();
+
+    public SimpleJsonDir(TestProxyServer server, String name) {
+        super(server, name);
         this.addPage(new SimpleJsonLoginPage(server));
+        this.addPage(new SimpleJsonVerificationPage(server));
     }
 
-    @Override
-    public void handleMessage(HttpMessageHandlerContext ctx, HttpMessage msg) {
-        String name = getPageName(msg);
+    public boolean isValid(String username, String password) {
+        return Arrays.stream(USERS)
+                .filter(c -> (c[0].equals(username) && c[1].equals(password)))
+                .findAny()
+                .isPresent();
+    }
 
-        switch (name) {
-            case INDEX_PAGE:
-            case "login":
-                super.handleMessage(ctx, msg);
-                break;
-            default:
-                this.getServer().handleFile(this, "fail.html", msg);
-                break;
-        }
+    public String getToken(String username) {
+        String token = RandomStringUtils.randomAlphanumeric(32);
+        sessions.put(token, username);
+        return token;
+    }
+
+    public String getUser(String token) {
+        return sessions.get(token);
     }
 }
