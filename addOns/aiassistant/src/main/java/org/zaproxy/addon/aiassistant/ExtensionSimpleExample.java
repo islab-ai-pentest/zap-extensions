@@ -27,6 +27,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.event.ActionListener;
+import java.util.List;
 
 import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
@@ -40,11 +41,10 @@ import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
 
 import org.parosproxy.paros.Constant;
+import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.extension.AbstractPanel;
 import org.parosproxy.paros.extension.ExtensionAdaptor;
 import org.parosproxy.paros.extension.ExtensionHook;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 /**
  * An example ZAP extension which adds a top level menu item, a pop up menu item
@@ -74,9 +74,8 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
      */
     private static final String RESOURCES = "resources";
 
-    private ChatGPTClient chatGPTClient = new ChatGPTClient("");
+    private CipherClient cipherClient = new CipherClient();
     private AlertsAPIClient alertsAPIClient = new AlertsAPIClient();
-    private static final Logger LOGGER = LogManager.getLogger(ExtensionSimpleExample.class);
 
     private AbstractPanel statusPanel;
     private JTextField inputField;
@@ -113,16 +112,19 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
                     return;
                 }
 
-                messagePanel.add(AddMessage("Me", message, Color.BLUE));
-
-                try {
-                    chatGPTClient.addAlertsToConversation(alertsAPIClient.getAllAlerts());
-                    String response = chatGPTClient.sendMessage(message);
+                List<Alert> alerts = alertsAPIClient.getAllAlerts();
+                for (Alert alert: alerts) {
+                    messagePanel.add(AddMessage("Alert", alert.getDescription(), Color.GREEN));
+                    String response = cipherClient.sendAlert(alert);
                     messagePanel.add(AddMessage("AI", response, Color.RED));
-                } catch (Exception e1) {
-                    messagePanel.add(AddMessage("AI", e1.getMessage(), Color.RED));
-                    LOGGER.error(message, e1);
+                    messagePanel.revalidate();
+                    messagePanel.repaint();
                 }
+
+                messagePanel.add(AddMessage("Me", message, Color.BLUE));
+                
+                String response = cipherClient.sendMessage(message);
+                messagePanel.add(AddMessage("AI", response, Color.RED));
 
                 messagePanel.revalidate();
                 messagePanel.repaint();
