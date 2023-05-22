@@ -104,39 +104,41 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
 
     private ActionListener listener() {
         return e -> {
-            if (e.getActionCommand().equals("send")) {
-                String message = inputField.getText();
-                inputField.setText("");
+            if (!e.getActionCommand().equals("send")) {
+                return;
+            }
 
-                if (message.isEmpty()) {
-                    return;
-                }
+            String message = inputField.getText();
+            inputField.setText("");
 
-                List<Alert> alerts = alertsAPIClient.getAllAlerts();
-                for (Alert alert: alerts) {
-                    messagePanel.add(AddMessage("Alert", alert.getDescription(), Color.GREEN));
-                    String response = cipherClient.sendAlert(alert);
-                    messagePanel.add(AddMessage("AI", response, Color.RED));
-                    messagePanel.revalidate();
-                    messagePanel.repaint();
-                }
+            if (message.isEmpty()) {
+                return;
+            }
 
-                messagePanel.add(AddMessage("Me", message, Color.BLUE));
-                
-                String response = cipherClient.sendMessage(message);
+            List<Alert> alerts = alertsAPIClient.getAllAlerts();
+            for (Alert alert: alerts) {
+                messagePanel.add(AddMessage("Alert", alert.getDescription(), Color.GREEN));
+                String response = cipherClient.sendAlert(alert);
                 messagePanel.add(AddMessage("AI", response, Color.RED));
-
                 messagePanel.revalidate();
                 messagePanel.repaint();
-
-                SwingUtilities.invokeLater(new Runnable() {
-                    @Override
-                    public void run() {
-                        JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
-                        verticalBar.setValue(verticalBar.getMaximum());
-                    }
-                });
             }
+
+            messagePanel.add(AddMessage("Me", message, Color.BLUE));
+            
+            String response = cipherClient.sendMessage(message);
+            messagePanel.add(AddMessage("AI", response, Color.RED));
+
+            messagePanel.revalidate();
+            messagePanel.repaint();
+
+            SwingUtilities.invokeLater(new Runnable() {
+                @Override
+                public void run() {
+                    JScrollBar verticalBar = scrollPane.getVerticalScrollBar();
+                    verticalBar.setValue(verticalBar.getMaximum());
+                }
+            });
         };
     }
 
