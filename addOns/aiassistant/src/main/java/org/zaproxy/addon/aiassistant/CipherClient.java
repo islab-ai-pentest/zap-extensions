@@ -7,6 +7,8 @@ import java.net.http.HttpResponse;
 import java.net.http.HttpResponse.BodyHandlers;
 import java.util.UUID;
 
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.parosproxy.paros.core.scanner.Alert;
 
 import java.net.URI;
@@ -15,6 +17,8 @@ import net.sf.json.JSONObject;
 
 public class CipherClient {
   private static String CIPHER_ENDPOINT = "https://6acf-164-125-252-223.ngrok-free.app/generate_chain?model_idx=1";
+
+  private static final Logger LOGGER = LogManager.getLogger(ExtensionSimpleExample.class);
 
   public String CONVERSATION_ID = UUID.randomUUID().toString();
 
@@ -44,6 +48,14 @@ public class CipherClient {
   }
 
   public String sendAlert(Alert alert) {
+    String debugMessage = "Uri: " + alert.getUri();
+    debugMessage += "\nRisk: " + alert.getRisk();
+    debugMessage += "\nConfidence: " + alert.getConfidence();
+    debugMessage += "\nCWE ID: " + alert.getCweId();
+    debugMessage += "\nWASC ID: " + alert.getWascId();
+    debugMessage += "\nDescription: " + alert.getDescription();
+    LOGGER.debug(debugMessage);
+
     String message = "I have an alert with the following details:\n" + alert.getDescription();
     return sendMessage(message);
   }

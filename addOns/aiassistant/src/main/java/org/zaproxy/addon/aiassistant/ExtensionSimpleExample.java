@@ -115,7 +115,7 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
                 return;
             }
 
-            List<Alert> alerts = alertsAPIClient.getAllAlerts();
+            List<Alert> alerts = alertsAPIClient.getNewAlerts();
             for (Alert alert: alerts) {
                 messagePanel.add(AddMessage("Alert", alert.getDescription(), Color.GREEN));
                 String response = cipherClient.sendAlert(alert);
