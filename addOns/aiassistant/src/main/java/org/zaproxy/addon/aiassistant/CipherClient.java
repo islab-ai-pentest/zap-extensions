@@ -16,7 +16,7 @@ import java.net.URI;
 import net.sf.json.JSONObject;
 
 public class CipherClient {
-  private static String CIPHER_ENDPOINT = "https://6acf-164-125-252-223.ngrok-free.app/generate_chain?model_idx=1";
+  private static String CIPHER_ENDPOINT = "https://6acf-164-125-252-223.ngrok-free.app/generate_chain?model_idx=0";
 
   private static final Logger LOGGER = LogManager.getLogger(ExtensionSimpleExample.class);
 
