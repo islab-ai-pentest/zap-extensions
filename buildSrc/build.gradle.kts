@@ -33,6 +33,7 @@ dependencies {
         exclude("com.fasterxml.jackson.core")
     }
     implementation("com.diffplug.spotless:spotless-plugin-gradle:6.14.1")
+    implementation("com.github.rjeschke:txtmark:0.13")
 }
 
 val javaVersion = JavaVersion.VERSION_11

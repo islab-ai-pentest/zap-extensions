@@ -9,6 +9,10 @@ zapAddOn {
     }
 }
 
+dependencies {
+    implementation("com.github.rjeschke:txtmark:0.13")
+}
+
 crowdin {
     configuration {
         val resourcesPath = "org/zaproxy/addon/${zapAddOn.addOnId.get()}/resources/"

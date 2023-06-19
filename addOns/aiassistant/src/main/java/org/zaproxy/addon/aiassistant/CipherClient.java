@@ -44,7 +44,9 @@ public class CipherClient {
       return "Error:" + e.getMessage();
     }
 
-    return response.body();
+    String str = response.body();
+
+    return str.substring(1, str.length() - 1).replaceAll("(\\\\n)", "<br />");
   }
 
   public String sendAlert(Alert alert) {

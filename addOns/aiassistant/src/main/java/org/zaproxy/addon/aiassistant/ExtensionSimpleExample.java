@@ -36,8 +36,8 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollBar;
 import javax.swing.JScrollPane;
-import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.JTextPane;
 import javax.swing.SwingUtilities;
 
 import org.parosproxy.paros.Constant;
@@ -45,6 +45,8 @@ import org.parosproxy.paros.core.scanner.Alert;
 import org.parosproxy.paros.extension.AbstractPanel;
 import org.parosproxy.paros.extension.ExtensionAdaptor;
 import org.parosproxy.paros.extension.ExtensionHook;
+
+import com.github.rjeschke.txtmark.Processor;
 
 /**
  * An example ZAP extension which adds a top level menu item, a pop up menu item
@@ -163,10 +165,13 @@ public class ExtensionSimpleExample extends ExtensionAdaptor {
         messageConstraints.weighty = 1.0;
         messageConstraints.anchor = GridBagConstraints.SOUTHWEST;
         messageConstraints.fill = GridBagConstraints.HORIZONTAL;
-        JTextArea messageArea = new JTextArea(message);
+        String htmlMessage = Processor.process(message);
+        JTextPane messageArea = new JTextPane();
+        messageArea.setContentType("text/html");
+        messageArea.setText(htmlMessage);
         messageArea.setEditable(false);
-        messageArea.setLineWrap(true);
-        messageArea.setWrapStyleWord(true);
+        // messageArea.setLineWrap(true);
+        // messageArea.setWrapStyleWord(true);
         messageArea.setMargin(new Insets(0, 10, 0, 0));
         messageArea.setForeground(color);
         messageArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
