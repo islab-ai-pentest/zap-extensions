@@ -40,6 +40,7 @@ var addOns = listOf(
     "bugtracker",
     "callgraph",
     "callhome",
+    "cipher",
     "client",
     "commonlib",
     "coreLang",
