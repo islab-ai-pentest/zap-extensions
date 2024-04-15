@@ -463,6 +463,19 @@ tasks.register("copyMandatoryAddOns") {
     }
 }
 
+tasks.register("copyAddOnsExceptBrowserView") {
+    group = LifecycleBasePlugin.BUILD_GROUP
+    description = "Copy all add-ons to zaproxy project except browser view."
+
+    subprojects.forEach{ project ->
+        try {
+            if (!project.name.equals("browserView")) {
+                dependsOn(project.tasks.named("copyZapAddOn"))
+            }
+        } catch (_: UnknownTaskException) {}
+    }
+}
+
 tasks.register("deployMandatoryAddOns") {
     group = LifecycleBasePlugin.BUILD_GROUP
     description = "Deploys the mandatory add-ons to the ZAP home dir."
