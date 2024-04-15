@@ -102,9 +102,6 @@ public class ExtensionCipher extends ExtensionAdaptor {
         // are automatically removed by the base unload() method.
         // If you use/add other components through other methods you might need to free/remove them
         // here (if the extension declares that can be unloaded, see above method).
-        if (hasView()) {
-            getWebViewPanel().remove(this.statusPanel);
-        }
     }
 
     private AbstractPanel getWebViewPanel () {
@@ -114,6 +111,7 @@ public class ExtensionCipher extends ExtensionAdaptor {
             statusPanel.setName(Constant.messages.getString(PREFIX + ".panel.title"));
             statusPanel.setIcon(new ImageIcon(Objects.requireNonNull(getClass().getResource(RESOURCES + "/robot.png"))));
             statusPanel.setPinned(true);
+            statusPanel.setHideable(false);
             statusPanel.loadURL("cipher.ngrok.app");
         }
 
